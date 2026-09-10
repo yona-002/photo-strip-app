@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Strip - Capture Your Moments</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFE8D6 50%, #FFD9C0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            max-width: 100%;
+            background: linear-gradient(180deg, #FFF8F0 0%, #FFEAD6 50%, #FFD9C0 100%);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Decorative corner frames like in the design */
+        .container::before,
+        .container::after {
+            content: '';
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .container::before {
+            top: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            border-top: 4px solid #D4A574;
+            border-left: 4px solid #D4A574;
+            border-radius: 2px;
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            z-index: 10;
+        }
+
+        .logo-container {
+            font-size: 32px;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2C5AA0;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #6B8FA3;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .section-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2C5AA0;
+            margin-bottom: 16px;
+            display: block;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .photo-strip-container {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            border: 3px solid #F4D4A8;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .photo-strip {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .photo-slot {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #E8F2FB 0%, #F0E8F8 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px dashed #C5D9E8;
+            overflow: hidden;
+            position: relative;
+            transform-origin: center;
+        }
+
+        .photo-slot:active {
+            transform: scale(0.98);
+        }
+
+        .photo-slot:hover {
+            background: linear-gradient(135deg, #D8E8FB 0%, #E8D8F8 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(44, 90, 160, 0.18);
+            border-color: #A8C5D8;
+        }
+
+        .photo-slot.filled {
+            border: 3px solid #2C5AA0;
+        }
+
+        .photo-slot.filled:hover {
+            box-shadow: 0 12px 32px rgba(44, 90, 160, 0.25);
+        }
+
+        .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: photoLoad 0.4s ease-out;
+        }
+
+        @keyframes photoLoad {
+            from {
+                opacity: 0;
+                transform: scale(1.05);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .photo-placeholder {
+            text-align: center;
+            font-size: 48px;
+            color: #A8C5D8;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            z-index: 10;
+            padding: 0 10px;
+        }
+
+        .button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
+            color: white;
+        }
+
+        .button-primary:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        .button-secondary {
+            background: linear-gradient(135deg, #5DADE2 0%, #2C5AA0 100%);
+            color: white;
+        }
+
+        .button-secondary:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+        }
+
+        .button-lg {
+            width: calc(100% - 20px);
+            margin: 0 10px 16px 10px;
+            padding: 16px 20px;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 13px;
+            color: #2C5AA0;
+            padding: 14px;
+            background: linear-gradient(135deg, #E8F2FB 0%, #F0E8F8 100%);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 4px solid #E74C3C;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-message.visible {
+            display: block;
+        }
+
+        .decorative-icons {
+            text-align: center;
+            font-size: 28px;
+            margin: 24px 0;
+            opacity: 0.5;
+            letter-spacing: 12px;
+            z-index: 10;
+        }
+
+        .about-section {
+            background: linear-gradient(135deg, #5DADE2 0%, #2C5AA0 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 20px 10px 40px 10px;
+            z-index: 10;
+            box-shadow: 0 12px 32px rgba(44, 90, 160, 0.25);
+            border-top: 4px solid #F4D4A8;
+        }
+
+        .about-section strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 800;
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+
+            .title {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .title {
+                font-size: 28px;
+            }
+
+            .button {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .photo-strip-container {
+                padding: 15px;
+            }
+        }
+
+        /* Print styles for downloaded strip */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                background: white;
+                box-shadow: none;
+            }
+
+            .header,
+            .action-buttons,
+            .about-section,
+            .decorative-icons,
+            input {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">📸</div>
+            <h1 class="title">Photo Strip</h1>
+            <p class="subtitle">Capture Your Moments</p>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <label class="section-label">Your Memories</label>
+        
+        <div class="photo-strip-container">
+            <div class="photo-strip" id="photoStrip">
+                <div class="photo-slot" data-index="0">
+                    <div class="photo-placeholder">📷</div>
+                </div>
+                <div class="photo-slot" data-index="1">
+                    <div class="photo-placeholder">📷</div>
+                </div>
+                <div class="photo-slot" data-index="2">
+                    <div class="photo-placeholder">📷</div>
+                </div>
+                <div class="photo-slot" data-index="3">
+                    <div class="photo-placeholder">📷</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="button button-primary" id="uploadBtn">📤 Upload</button>
+            <button class="button button-secondary" id="clearBtn">🗑️ Clear</button>
+        </div>
+
+        <button class="button button-primary button-lg" id="downloadBtn" style="display: none;">⬇️ Download Strip</button>
+
+        <div class="decorative-icons">🖼️ ✨ 🎨</div>
+
+        <div class="about-section">
+            <strong>Make Magic</strong>
+            Create beautiful photo strips and preserve your favorite memories with style. One tap at a time.
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" capture="environment">
+
+    <script>
+        const photoStrip = document.getElementById('photoStrip');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const statusMessage = document.getElementById('statusMessage');
+
+        let currentIndex = 0;
+        let photos = ['', '', '', ''];
+
+        // Click on photo slot to upload
+        photoStrip.querySelectorAll('.photo-slot').forEach((slot, index) => {
+            slot.addEventListener('click', () => {
+                currentIndex = index;
+                fileInput.click();
+            });
+        });
+
+        // Upload button
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    photos[currentIndex] = event.target.result;
+                    updatePhotoDisplay(currentIndex);
+                    showStatus('Photo added! 📸');
+                    checkDownloadButton();
+                    fileInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Update photo display
+        function updatePhotoDisplay(index) {
+            const slot = photoStrip.querySelectorAll('.photo-slot')[index];
+            if (photos[index]) {
+                slot.classList.add('filled');
+                slot.innerHTML = `<img src="${photos[index]}" alt="Photo ${index + 1}">`;
+            }
+        }
+
+        // Clear all photos
+        clearBtn.addEventListener('click', () => {
+            photos = ['', '', '', ''];
+            photoStrip.querySelectorAll('.photo-slot').forEach((slot, index) => {
+                slot.classList.remove('filled');
+                slot.innerHTML = '<div class="photo-placeholder">📷</div>';
+            });
+            downloadBtn.style.display = 'none';
+            showStatus('All photos cleared! 🗑️');
+        });
+
+        // Check if download button should be visible
+        function checkDownloadButton() {
+            const hasAnyPhoto = photos.some(photo => photo);
+            downloadBtn.style.display = hasAnyPhoto ? 'flex' : 'none';
+        }
+
+        // Download photo strip
+        downloadBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const photoSize = 300;
+            const gap = 20;
+            const padding = 30;
+            const totalHeight = photoSize * 4 + gap * 3 + padding * 2;
+
+            canvas.width = photoSize + padding * 2;
+            canvas.height = totalHeight;
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#FFF8F0');
+            gradient.addColorStop(0.5, '#FFEAD6');
+            gradient.addColorStop(1, '#FFD9C0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw decorative frame corners
+            ctx.strokeStyle = '#D4A574';
+            ctx.lineWidth = 3;
+            const cornerSize = 40;
+            
+            // Top left
+            ctx.beginPath();
+            ctx.moveTo(padding - 10, padding + cornerSize);
+            ctx.lineTo(padding - 10, padding - 10);
+            ctx.lineTo(padding + cornerSize, padding - 10);
+            ctx.stroke();
+
+            // Top right
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - padding + 10 - cornerSize, padding - 10);
+            ctx.lineTo(canvas.width - padding + 10, padding - 10);
+            ctx.lineTo(canvas.width - padding + 10, padding + cornerSize);
+            ctx.stroke();
+
+            // Draw photos
+            let loadedCount = 0;
+
+            photos.forEach((photoData, index) => {
+                const y = padding + index * (photoSize + gap);
+                if (photoData) {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, padding, y, photoSize, photoSize);
+                        loadedCount++;
+                        if (loadedCount === photos.filter(p => p).length) {
+                            finalizeDownload(canvas);
+                        }
+                    };
+                    img.onerror = () => {
+                        loadedCount++;
+                        if (loadedCount === photos.filter(p => p).length) {
+                            finalizeDownload(canvas);
+                        }
+                    };
+                    img.src = photoData;
+                } else {
+                    // Empty frame with dashed border
+                    ctx.strokeStyle = '#C5D9E8';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([10, 5]);
+                    ctx.strokeRect(padding, y, photoSize, photoSize);
+                    ctx.setLineDash([]);
+                }
+            });
+
+            if (photos.filter(p => p).length === 0) {
+                finalizeDownload(canvas);
+            }
+
+            function finalizeDownload(canvas) {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `photo-strip-${new Date().getTime()}.png`;
+                link.click();
+                showStatus('Photo strip downloaded! 🎉');
+            }
+        });
+
+        function showStatus(message) {
+            statusMessage.textContent = message;
+            statusMessage.classList.add('visible');
+            setTimeout(() => {
+                statusMessage.classList.remove('visible');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
